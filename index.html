@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="一套支持摄像头手势、鼠标、触摸与键盘操作的三张塔罗牌互动原型。"
+    />
+    <meta name="theme-color" content="#eee8db" />
+    <title>Arcana · 手势塔罗</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='25' fill='%23eee8db' stroke='%23201f1a' stroke-width='2'/%3E%3Cpath d='M32 5v54M5 32h54' stroke='%23201f1a'/%3E%3Cpath d='m32 23 9 9-9 9-9-9Z' fill='none' stroke='%238c3e29' stroke-width='2'/%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="./styles.css?v=20260717-arcana-6" />
+  </head>
+  <body data-reading-state="selecting" data-camera-state="off">
+    <a class="skip-link" href="#main-content">跳到占卜台</a>
+
+    <header class="site-header">
+      <a class="brand" href="#main-content" aria-label="Arcana 手势塔罗首页">
+        <span class="brand-mark" aria-hidden="true">
+          <span></span>
+        </span>
+        <span class="brand-copy">
+          <strong>ARCANA</strong>
+          <small>手势塔罗实验室</small>
+        </span>
+      </a>
+
+      <div class="session-mark" aria-label="当前牌阵">
+        <span>三牌阵</span>
+        <span aria-hidden="true">/</span>
+        <span>过去 · 此刻 · 去向</span>
+      </div>
+
+      <div class="header-actions">
+        <button class="icon-button sound-button" id="sound-button" type="button"
+          aria-pressed="true" aria-label="关闭背景音乐与音效">
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <path d="M5 10v4h3l4 3V7l-4 3H5Z"></path>
+            <path class="sound-wave" d="M15 9.2a4 4 0 0 1 0 5.6"></path>
+            <path class="sound-wave sound-wave--outer" d="M17.6 6.8a7.4 7.4 0 0 1 0 10.4"></path>
+            <path class="sound-muted-mark" d="m15.2 9.2 4.8 5.6m0-5.6-4.8 5.6"></path>
+          </svg>
+        </button>
+        <button class="icon-button" id="help-button" type="button" aria-label="查看操作帮助">
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="9"></circle>
+            <path d="M9.9 9.25a2.25 2.25 0 1 1 3.2 2.04c-.72.36-1.1.77-1.1 1.71"></path>
+            <path d="M12 16.7h.01"></path>
+          </svg>
+        </button>
+        <button class="camera-button button button--primary" id="camera-button" type="button">
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <path d="M4.5 7.5h3l1.2-2h6.6l1.2 2h3a1.5 1.5 0 0 1 1.5 1.5v8.5a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 17.5V9a1.5 1.5 0 0 1 1.5-1.5Z"></path>
+            <circle cx="12" cy="13" r="3.5"></circle>
+          </svg>
+          <span>启用手势</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="workbench" id="main-content">
+      <section class="reading-stage" aria-labelledby="page-title">
+        <div class="stage-heading">
+          <div>
+            <p class="eyebrow"><span>01</span> 让直觉先于答案</p>
+            <h1 id="page-title">让牌回应<br />你的手势</h1>
+          </div>
+          <p class="stage-lede">
+            张开手掌允许抽取，捏合抓住牌背并拉近查看；握拳后，选择才真正成为结果。
+          </p>
+        </div>
+
+        <div class="stage-status-row">
+          <div class="selection-meter" aria-label="选牌进度">
+            <span id="selection-count">00 / 03</span>
+            <div class="selection-dots" id="selection-dots" aria-hidden="true">
+              <i></i><i></i><i></i>
+            </div>
+          </div>
+          <p id="stage-instruction">张开手掌，进入待抽牌状态</p>
+        </div>
+
+        <div class="ritual-orbit" id="ritual-orbit">
+          <span class="orbit-coordinate orbit-coordinate--north" aria-hidden="true">N · 00</span>
+          <span class="orbit-coordinate orbit-coordinate--east" aria-hidden="true">E · 90</span>
+          <span class="orbit-coordinate orbit-coordinate--south" aria-hidden="true">S · 180</span>
+          <span class="orbit-coordinate orbit-coordinate--west" aria-hidden="true">W · 270</span>
+
+          <div class="spread" id="spread" aria-label="三张牌阵"></div>
+
+          <div class="held-card-portal" id="held-card-portal" hidden>
+            <article class="held-card-panel" aria-live="polite">
+              <div class="held-card-visual" id="held-card-visual"></div>
+              <div class="held-card-copy">
+                <span class="held-card-state" id="held-card-state">HOLD / 未锁定</span>
+                <h2 id="held-card-name">—</h2>
+                <p class="held-card-keywords" id="held-card-keywords"></p>
+                <p class="held-card-meaning" id="held-card-meaning"></p>
+                <small>这张牌尚未写入结果。握拳确认，或取消让它返回牌库。</small>
+              </div>
+            </article>
+          </div>
+
+          <div class="ash-layer" id="ash-layer" aria-hidden="true"></div>
+
+          <div class="fan-zone" id="fan-zone">
+            <div class="fan-lane-head">
+              <p class="fan-caption" id="fan-caption">牌流向左 · 黑洞回收 · 左右滑动</p>
+            </div>
+            <div class="card-fan" id="card-fan" role="listbox" tabindex="0"
+              aria-labelledby="fan-caption" aria-orientation="horizontal"></div>
+            <span class="fan-vanish-line" aria-hidden="true"><i></i><b></b></span>
+          </div>
+
+          <div class="gesture-cursor" id="gesture-cursor" aria-hidden="true">
+            <span class="gesture-ray" id="gesture-ray"></span>
+            <span class="gesture-cursor__ring"></span>
+            <span class="gesture-cursor__cross gesture-cursor__cross--x"></span>
+            <span class="gesture-cursor__cross gesture-cursor__cross--y"></span>
+            <span class="gesture-cursor__label">追踪</span>
+          </div>
+        </div>
+
+        <div class="draw-controller" id="draw-controller">
+          <div class="draw-controller__copy">
+            <span class="draw-controller__index" id="draw-state-index">OPEN / 01</span>
+            <div>
+              <p id="draw-state-title">牌库正在休眠</p>
+              <small id="draw-state-detail">张开手掌，或点击按钮允许下一次抽取。</small>
+            </div>
+          </div>
+          <div class="draw-controller__actions">
+            <button class="button button--quiet" id="cancel-held-button" type="button" hidden>放回牌库</button>
+            <button class="button button--primary" id="state-action-button" type="button">
+              进入待抽牌
+              <svg aria-hidden="true" viewBox="0 0 24 24">
+                <path d="m8 5 7 7-7 7"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <section class="reading-result" id="reading-result" aria-labelledby="reading-title" hidden>
+          <div class="reading-result__head">
+            <div>
+              <p class="eyebrow"><span>04</span> 牌面手记</p>
+              <h2 id="reading-title">把答案留给此刻的你</h2>
+            </div>
+            <button class="button button--quiet" id="restart-button" type="button">重新开始</button>
+          </div>
+          <p class="reading-summary" id="reading-summary"></p>
+          <div class="reading-notes" id="reading-notes"></div>
+          <p class="reading-disclaimer">把牌面当作一次自我观察，而不是确定的预言。</p>
+        </section>
+      </section>
+
+      <aside class="context-rail" aria-labelledby="question-title">
+        <div class="rail-index" aria-hidden="true">A — 01</div>
+        <section class="question-card">
+          <p class="section-kicker">本次所问</p>
+          <h2 id="question-title">先把问题放在桌上</h2>
+          <label class="sr-only" for="question-input">输入你想思考的问题</label>
+          <textarea id="question-input" maxlength="120" rows="5">我需要看见什么，才能更从容地走过今天？</textarea>
+          <span class="question-rule" aria-hidden="true"></span>
+          <p>问题不必完美。它只需要足够真实。</p>
+        </section>
+
+        <ol class="ritual-steps" id="ritual-steps" aria-label="占卜流程">
+          <li class="is-current" data-step="choose">
+            <span>01</span>
+            <div><strong>允许</strong><small>OPEN 张掌唤醒牌库</small></div>
+          </li>
+          <li data-step="reveal">
+            <span>02</span>
+            <div><strong>抓取</strong><small>PINCH 命中后拉近查看</small></div>
+          </li>
+          <li data-step="reflect">
+            <span>03</span>
+            <div><strong>锁定</strong><small>FIST 确认并写入历史</small></div>
+          </li>
+        </ol>
+
+        <div class="rail-actions">
+          <button class="text-button" id="shuffle-button" type="button">
+            <svg aria-hidden="true" viewBox="0 0 24 24">
+              <path d="M4 7h2.6c4.8 0 5.8 10 10.8 10H20"></path>
+              <path d="m17 14 3 3-3 3"></path>
+              <path d="M4 17h2.6c1.7 0 2.8-1.2 3.8-2.8M13.5 8.6C14.5 7.7 15.7 7 17.4 7H20"></path>
+              <path d="m17 4 3 3-3 3"></path>
+            </svg>
+            重置牌库
+          </button>
+          <button class="text-button" id="undo-button" type="button" hidden>
+            <svg aria-hidden="true" viewBox="0 0 24 24">
+              <path d="m9 7-5 5 5 5"></path>
+              <path d="M5 12h8a6 6 0 0 1 6 6"></path>
+            </svg>
+            撤回上一张
+          </button>
+        </div>
+
+        <p class="micro-note">键盘：O 允许 · ← → 切换目标 · Enter 抓取/确认 · Esc 取消 · Ctrl + Z 撤回</p>
+      </aside>
+
+      <aside class="gesture-rail" aria-labelledby="gesture-title">
+        <div class="rail-index" aria-hidden="true">CAM — 01</div>
+        <div class="camera-frame" id="camera-frame">
+          <video id="camera-video" autoplay playsinline muted aria-label="镜像摄像头预览"></video>
+          <canvas id="hand-canvas" aria-hidden="true"></canvas>
+          <div class="camera-placeholder" id="camera-placeholder" aria-hidden="true">
+            <span class="camera-placeholder__target"><i></i></span>
+            <p>等待手势授权</p>
+          </div>
+          <div class="camera-safe-frame" aria-hidden="true"><span></span></div>
+          <span class="camera-local-badge">仅本机处理</span>
+        </div>
+
+        <div class="gesture-status" aria-live="off">
+          <span class="status-lamp" id="status-lamp" aria-hidden="true"></span>
+          <div>
+            <p id="camera-status">摄像头关闭</p>
+            <strong id="gesture-status">可直接使用鼠标、触摸或键盘</strong>
+          </div>
+          <span class="status-confidence" id="status-confidence">—</span>
+        </div>
+
+        <section class="gesture-guide" aria-labelledby="gesture-title">
+          <div class="guide-heading">
+            <div>
+              <p class="section-kicker">手势图谱</p>
+              <h2 id="gesture-title">三个稳定手势</h2>
+            </div>
+            <span>LOCAL<br />VISION</span>
+          </div>
+
+          <ol>
+            <li>
+              <span class="gesture-number">01</span>
+              <div class="gesture-glyph gesture-glyph--open" aria-hidden="true"><i></i></div>
+              <div><strong>OPEN</strong><small>张掌保持，允许抽取</small></div>
+            </li>
+            <li>
+              <span class="gesture-number">02</span>
+              <div class="gesture-glyph gesture-glyph--pinch" aria-hidden="true"><i></i><b></b></div>
+              <div><strong>PINCH</strong><small>射线命中牌背后抓取</small></div>
+            </li>
+            <li>
+              <span class="gesture-number">03</span>
+              <div class="gesture-glyph gesture-glyph--fist" aria-hidden="true"><i></i></div>
+              <div><strong>FIST</strong><small>握拳保持，确认并锁定</small></div>
+            </li>
+          </ol>
+        </section>
+
+        <section class="history-panel" aria-labelledby="history-title">
+          <div class="history-heading">
+            <div>
+              <p class="section-kicker">抽牌历史</p>
+              <h2 id="history-title">本轮已锁定结果</h2>
+            </div>
+            <span id="history-count">00 / 78</span>
+          </div>
+
+          <label class="image-source-control" for="image-source-mode">
+            <span>卡牌图源</span>
+            <select id="image-source-mode">
+              <option value="auto">自动：本地 → URL</option>
+              <option value="url">Wikimedia URL</option>
+              <option value="local">本地 assets/cards</option>
+            </select>
+          </label>
+
+          <ol class="history-list" id="history-list">
+            <li class="history-empty">尚未锁定结果。第一张牌会记录在这里。</li>
+          </ol>
+
+          <section class="previous-reading" aria-labelledby="previous-reading-title">
+            <div class="previous-reading__heading">
+              <div>
+                <p class="section-kicker">上次记录</p>
+                <h3 id="previous-reading-title">上次完整牌阵</h3>
+              </div>
+              <time id="previous-reading-time">—</time>
+            </div>
+            <p class="previous-reading__question" id="previous-reading-question" hidden></p>
+            <ol class="history-list previous-reading__list" id="previous-reading-list">
+              <li class="history-empty">还没有上一轮完整牌阵。完成三张牌后会保存在此设备。</li>
+            </ol>
+            <p class="previous-reading__note">记录仅保存在当前浏览器；清除浏览数据或更换设备后不会同步。</p>
+          </section>
+          <p class="image-source-note">
+            RWS 公版扫描来自
+            <a href="https://commons.wikimedia.org/wiki/Category:Rider-Waite-Smith_tarot_deck_(TaionWC)" target="_blank" rel="noreferrer">Wikimedia Commons</a>；图像失败时自动显示占位。
+          </p>
+        </section>
+
+        <p class="privacy-note">
+          摄像头画面只在当前设备中用于关键点识别，不会上传或保存。你可以随时关闭手势。
+        </p>
+      </aside>
+    </main>
+
+    <footer class="site-footer">
+      <span>ARCANA / INTERACTION STUDY 01</span>
+      <span>RWS 1910 · Pamela Colman Smith · Public Domain</span>
+      <span id="local-date">—</span>
+    </footer>
+
+    <div class="boot-fallback" aria-live="polite">
+      <strong>牌面未能启动</strong>
+      <span>请刷新页面；若仍为空，请按 README 使用 localhost 打开。</span>
+    </div>
+
+    <noscript>
+      <div class="noscript-warning">此页面需要 JavaScript 才能生成牌组和完成交互。</div>
+    </noscript>
+
+    <dialog class="help-dialog" id="help-dialog" aria-labelledby="help-title">
+      <form method="dialog">
+        <div class="dialog-head">
+          <div>
+            <p class="section-kicker">操作说明</p>
+            <h2 id="help-title">选择你舒服的方式</h2>
+          </div>
+          <button class="icon-button" value="close" aria-label="关闭帮助">
+            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"></path></svg>
+          </button>
+        </div>
+        <div class="help-grid">
+          <section>
+            <span>01</span>
+            <h3>摄像头手势</h3>
+            <p>OPEN 张掌允许抽取；PINCH 捏合后拉近预览；FIST 握拳确认并写入历史。</p>
+          </section>
+          <section>
+            <span>02</span>
+            <h3>鼠标与触摸</h3>
+            <p>牌带会持续向左移动；按下牌背或手势命中后才会冻结，预览后再确认或放回。</p>
+          </section>
+          <section>
+            <span>03</span>
+            <h3>键盘</h3>
+            <p>O 允许抽取，方向键切换目标，Enter 抓取/确认，Esc 放回，Ctrl + Z 撤回，G 开关手势。</p>
+          </section>
+        </div>
+        <button class="button button--primary dialog-confirm" value="close">明白了</button>
+      </form>
+    </dialog>
+
+    <div class="sr-only" id="announcer" aria-live="polite" aria-atomic="true"></div>
+    <script defer src="./background.js?v=20260717-arcana-6"></script>
+    <script defer src="./deck.js?v=20260717-arcana-6"></script>
+    <script defer src="./ash.js?v=20260717-arcana-6"></script>
+    <script defer src="./audio.js?v=20260717-arcana-6"></script>
+    <script defer src="./app.js?v=20260717-arcana-6"></script>
+  </body>
+</html>

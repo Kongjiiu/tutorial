@@ -1,0 +1,27 @@
+# Duplicate manual-upload output; deploy the repository root instead.
+/cloudflare-upload/
+
+# Local agent, editor, and account configuration.
+/.agents/
+/.codex/
+/.aws/
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Dependencies and private local configuration.
+node_modules/
+.env*
+!.env.example
+
+# Local logs and temporary verification output.
+*.log
+/qa-*
+/playwright-report/
+/test-results/
+/coverage/
